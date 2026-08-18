@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException, status
 from pydantic import BaseModel
 
 app = FastAPI()
@@ -33,8 +33,16 @@ def get_users():
     return {"users": users}
 
 
-@app.post("/users")
+@app.post("/users", status_code=status.HTTP_201_CREATED)
 def create_user(user: User):
+
+    for existing_user in users:
+        if existing_user["email"] == user.email:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email already registered"
+            )
+
     new_user = {
         "id": len(users) + 1,
         "name": user.name,
